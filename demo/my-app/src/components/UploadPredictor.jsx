@@ -37,25 +37,50 @@ export default function UploadPredictor() {
         if (inputRef.current) inputRef.current.value = ''
     }
 
+    const API_URL = 'http://localhost:8000/predict'; // set env var in dev if needed
+
     const onSubmit = async () => {
-        if (!file) return setError('Vui lòng chọn ảnh trước')
-        setLoading(true)
-        setError(null)
-        setResult(null)
+        if (!file) return setError('Vui lòng chọn ảnh trước');
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
         try {
-            const fd = new FormData()
-            fd.append('image', file)
-            const res = await fetch('/api/predict', { method: 'POST', body: fd })
-            if (!res.ok) throw new Error(await res.text())
-            const data = await res.json()
-            // expected: { label: 'hemorrhage'|'normal', prob: 0.92 }
-            setResult(data)
+            const fd = new FormData();
+            // IMPORTANT: backend expects field name "file" (the FastAPI param name)
+            fd.append('file', file);
+
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                body: fd,
+                // DON'T set Content-Type header — browser sets multipart boundary
+            });
+
+            // handle non-JSON error body
+            if (!res.ok) {
+                let text;
+                try { text = await res.text(); } catch { text = `${res.status} ${res.statusText}`; }
+                throw new Error(text || 'Server error');
+            }
+
+            const data = await res.json();
+
+            // Map backend response to the shape the UI expects (label / prob)
+            // backend returns: { prediction: "...", confidence: 0.xx, probabilities: {...} }
+            const mapped = {
+                label: data.prediction === 'hemmorhage_data' || data.prediction === 'hemorrhage' ? 'hemorrhage' : 'normal',
+                prob: data.confidence ?? (data.probabilities && Object.values(data.probabilities)[0]) ?? 0,
+                raw: data
+            };
+
+            setResult(mapped);
         } catch (err) {
-            setError(err.message || String(err))
+            setError(err.message || String(err));
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
+
 
     const confidencePercent = result ? Math.round((result.prob || 0) * 100) : 0
 
@@ -178,7 +203,7 @@ export default function UploadPredictor() {
 
                         <div>
                         <p className="text-sm text-gray-600 mb-2">Model</p>
-                        <div className="text-sm">MobileNet (fine-tuned)</div>
+                        <div className="text-sm text-gray-600">MobileNet (fine-tuned)</div>
                         <p className="mt-3 text-xs text-gray-500">Notes: ensure input is a single axial slice for best accuracy.</p>
                         </div>
                     </div>

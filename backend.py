@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import torch
 import torch.nn as nn
@@ -8,6 +9,18 @@ import torchvision.transforms as transforms
 from torchvision import models
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,    # hoặc ["*"] cho dev nhanh (không recommended prod)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Thiết bị
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -53,13 +66,20 @@ def predict(image: Image.Image):
 
 # Endpoint upload ảnh
 @app.post("/predict")
+@app.post("/predict")
 async def predict_hemorrhage(file: UploadFile = File(...)):
     try:
+        print(">>> /predict called; filename:", getattr(file, "filename", None))
+        # optional: read small header to confirm bytes received
+        # content_preview = await file.read(32)  # if you want async read
         image = Image.open(file.file)
         result = predict(image)
+        print(">>> prediction done, returning")
         return JSONResponse(content=result)
     except Exception as e:
+        print("!!! error in /predict:", e)
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 if __name__ == "__main__":
     import uvicorn
