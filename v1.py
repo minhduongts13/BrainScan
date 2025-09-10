@@ -18,6 +18,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173",
+    "https://minhduongts13.github.io"
 ]
 
 app.add_middleware(
@@ -101,4 +102,5 @@ async def predict(image: UploadFile = File(...)):
 
 # 🚀 Tự động chạy server khi file được chạy trực tiếp
 if __name__ == "__main__":
-    uvicorn.run("v1:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("v1:app", host="0.0.0.0", port=port, reload=False)
