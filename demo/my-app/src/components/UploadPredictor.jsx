@@ -37,7 +37,7 @@ export default function UploadPredictor() {
         if (inputRef.current) inputRef.current.value = ''
     }
 
-    const API_URL = 'http://localhost:8000/predict'; // set env var in dev if needed
+    const API_URL = 'https://brainscan-e30f.onrender.com/predict'; // set env var in dev if needed
 
     const onSubmit = async () => {
         if (!file) return setError('Vui lòng chọn ảnh trước');
