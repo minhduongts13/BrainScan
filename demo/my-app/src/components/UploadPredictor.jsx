@@ -48,7 +48,7 @@ export default function UploadPredictor() {
         try {
             const fd = new FormData();
             // IMPORTANT: backend expects field name "file" (the FastAPI param name)
-            fd.append('file', file);
+            fd.append('image', file);
 
             const res = await fetch(API_URL, {
                 method: 'POST',
@@ -64,12 +64,12 @@ export default function UploadPredictor() {
             }
 
             const data = await res.json();
-
+            console.log('Response data:', data);
             // Map backend response to the shape the UI expects (label / prob)
             // backend returns: { prediction: "...", confidence: 0.xx, probabilities: {...} }
             const mapped = {
                 label: data.prediction === 'hemmorhage_data' || data.prediction === 'hemorrhage' ? 'hemorrhage' : 'normal',
-                prob: data.confidence ?? (data.probabilities && Object.values(data.probabilities)[0]) ?? 0,
+                prob: data.prob ?? (data.probabilities && Object.values(data.probabilities)[0]) ?? 0,
                 raw: data
             };
 

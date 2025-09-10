@@ -7,12 +7,26 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, i
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
+from fastapi.middleware.cors import CORSMiddleware
+
 import numpy as np
 import shutil
 import os
 import uvicorn
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,    # hoặc ["*"] cho dev nhanh (không recommended prod)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 🔧 Huấn luyện mô hình MobileNetV1 nếu chưa có file .h5
 def train_model():
@@ -73,11 +87,11 @@ async def predict(image: UploadFile = File(...)):
         processed_img = preprocess_image(temp_path)
         prediction = model.predict(processed_img)
         probability = float(prediction[0][0])
-        result = "Có u não" if probability > 0.5 else "Không có u não"
+        result = "hemmorhage_data" if probability > 0.5 else "non_hemmorhage_data"
 
         return JSONResponse(content={
             "prediction": result,
-            "probability": round(probability, 4)
+            "prob": round(probability, 4)
         })
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -87,4 +101,4 @@ async def predict(image: UploadFile = File(...)):
 
 # 🚀 Tự động chạy server khi file được chạy trực tiếp
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("v1:app", host="0.0.0.0", port=8000, reload=True)
