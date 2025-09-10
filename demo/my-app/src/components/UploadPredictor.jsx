@@ -138,7 +138,7 @@ export default function UploadPredictor() {
                     )}
                     </button>
 
-                    <button onClick={reset} className="px-4 py-2 rounded border">Reset</button>
+                    <button onClick={reset} className="px-4 py-2 rounded border bg-black">Reset</button>
                 </div>
 
                 {error && <p className="mt-3 text-sm text-red-600">Lỗi: {error}</p>}
