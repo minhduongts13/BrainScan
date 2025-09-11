@@ -27,7 +27,7 @@ app.add_middleware(
 model = tf.keras.models.load_model("my_model.h5")
 
 # Danh sách class
-class_names = ["hemmorrage_data", "non_hemmorrage_data"]
+class_names = ["hemmorhage_data", "non_hemmorhage_data"]
 
 # Tiền xử lý ảnh
 def preprocess_image(image: Image.Image):
@@ -43,12 +43,13 @@ def predict(image: Image.Image):
 
     # Sigmoid output (chỉ có 1 node)
     prob = model.predict(processed_image, verbose=0)[0][0]  # ra 1 giá trị [0-1]
-
+    prob = 1 - prob
     # Xác suất 2 class (hemorrhage / non-hemorrhage)
     probs = [prob, 1 - prob]
 
     # Lấy class có xác suất cao nhất
-    pred_index = int(prob >= 0.5)  # 0: hemorrhage, 1: non-hemorrhage
+
+    pred_index = int(prob <= 0.5)  # 0: hemorrhage, 1: non-hemorrhage
     max_prob = probs[pred_index]
 
     # Quy tắc uncertain 40–60%
