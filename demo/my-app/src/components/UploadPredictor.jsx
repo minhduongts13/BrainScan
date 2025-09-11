@@ -48,7 +48,7 @@ export default function UploadPredictor() {
         try {
             const fd = new FormData();
             // IMPORTANT: backend expects field name "file" (the FastAPI param name)
-            fd.append('image', file);
+            fd.append('file', file);
 
             const res = await fetch(API_URL, {
                 method: 'POST',
